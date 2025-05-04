@@ -1,99 +1,65 @@
-# Full Stack Engineering Challenge
-
-## Scenario
-
-You’ve joined a growing software company that’s building a lightweight task management tool. The application already supports creating and displaying tasks, and the backend supports nested (self-referencing) tasks through a parent-child relationship.
-
-Your job is to extend the application’s functionality to enable users to **create subtasks via the UI**, and extend the backend API to retrieve subtasks on demand.
-
-This task is designed to assess your ability to work with a real-world React + NestJS codebase, understand context quickly, and deliver clean, functional improvements.
-
----
-
-## Tech Stack
-
-This application is built with:
-
-- **Frontend**: React (with TypeScript + Context API)
-- **Backend**: NestJS (with TypeORM and SQLite)
-- **Database**: SQLite (in-memory)
-- **Containerisation**: Docker + Docker Compose
-- **Build Tools**: Vite (frontend), Nest CLI (backend)
-
----
-
-## What’s Included
-
-- `frontend/` — React app that renders and creates top-level tasks.
-- `backend/` — NestJS API that supports nested tasks via a self-referencing entity.
-- `docker-compose.yml` — launches both services together.
-- `nginx.conf` — proxies API calls from frontend to backend.
-- `README.md` — this file.
-
----
-
-## What Works Now
-
-- You can **add top-level tasks** from the UI.
-- Tasks (and their nested subtasks) are displayed recursively.
-- Tasks are saved via the backend into an in-memory SQLite database.
-- API routes:
-  - `GET /api/tasks` — fetch all tasks with nested subtasks
-  - `POST /api/tasks` — create a task (optionally with `parentId`)
-
----
-
-## Your Challenge
-
-To update both frontend and backend to do the following:
-
-### Frontend
-
-- Add UI controls to allow users to create subtasks under any existing task.
-- Wire these to the backend using the existing `createTask(title, parentId)` API call.
-- Ensure newly created subtasks appear nested under their parent task.
+## Short description of what I implemented
 
 ### Backend
+`tasks.entity.ts` - Created a new Column to the Task entity that stores a parentId, to link a subtask specifically to its parent
 
-- Add a new route to the NestJS backend:
-  - `GET /api/tasks/:id/subtasks`
-- This should return all tasks where the `parentId` matches the given `id`.
-- Implement the corresponding service method in `TasksService`.
+`tasks.service.ts` 
 
-You may use TypeORM relations to perform the query. Keep the structure clean and RESTful.
+- Modified the `findAll()` API to retrieve tasks where `{parent: IsNull()}` to only retrieve the outermost parent tasks i.e. only the top-level tasks. This is to ensure that subtasks are not also fetched and displayed independently of their parent
+- Created the `findSubtasks` method to retrieve child subtasks for a specific parent, supporting on-demand loading instead of fetching the entire task hierarchy at one go.
 
----
+`tasks.controller.ts` - Added a dedicated `GET /:id/subtasks` endpoint to fetch subtasks by parent ID
 
-## 🧪 Getting Started
+### Frontend
+`api.ts` - Added a new frontend API function called `fetchSubtasks` that accepts a parent taskID and returns an array of subtasks
 
-### 1. Build the project
+`TaskContext.tsx`
 
-```bash
-docker-compose up --build
-```
+- Redesigned Task Context to implement on-demand loading of task levels, with a dedicated `loadSubtasks` method for fetching and loading subtasks of a parent
+- Optimised state management by appending new tasks and subtasks directly into the state instead of re-fetching all the tasks after new tasks are added
 
-This starts:
-- React frontend on [http://localhost:8080](http://localhost:8080)
-- NestJS backend on [http://localhost:3000](http://localhost:3000) (proxied via NGINX)
+`TaskList.tsx` - Added a `useEffect` to call `refreshTasks()` to fetch the top-level parent tasks when the component mounts
 
-### 2. Add tasks via UI and verify that tasks render correctly.
+`TaskItem.tsx` - Rebuilt the TaskItem component to implement lazy-loading and recursive rendering of task and subtask levels. I added expand-and-collapse functionality on each task box, to fetch subtasks upon expanding, and also the Add Subtask button to create new subtasks.
 
----
+## AI Tools Used:
+### Cline + Gemini 2.5 (VSCode extention)
+__AI Result:__
+- `TaskContext.tsx`: The `addTask` function works but is inefficient because it refetches *all* tasks from the backend after adding a new one. It should update the local state directly with the newly created task returned by the API.
+- Other recommendation:
+    - use `try catch` blocks around API calls for better error handling
 
-## Submission
 
-This task is intentionally designed to be focused and time-efficient. We expect that it should take no more than 2 to 4 hours, including time to record a brief walkthrough and reflect on improvements.
+### - Claude Code (terminal plugin)
+__AI Result:__
+- Duplicate display of subtask - beneath the parent task & also independently in the task list (due to how `findAll()` works)
+    -> MY SOLUTION: update backend query to only return top-level tasks, i.e. tasks where parent is null
+- Claude AI's solution still involved backend query returing ALL subtasks in the `tasks` query, which was problematic in my opinion:
+    - It did not fetch the subtasks on demand
+    - Posed performance issues due to recursive nature (what if there were too many nested levels of subtasks)
+    - Meant more logic on the frontend to handle the filtering
+    -> MY SOLUTION: Stick to my initial plan and retrieve subtasks based on frontend interaction i.e. make an API call when clicking on a parent task's dropdown
+        - Create a new parentId column for Task to link each subtask to its parent
+- Conclusion: I did not fully use Claude AI's solution
 
-When you're done, please submit:
+## Roadmap/List of ideas of how I would improve it with more time
 
-- A link to your Git repo.
-- A short description of what you implemented and why (this can be as simple as updating this very README).
-- A short video walkthrough describing your solution, key decision points, and the code structure.
-- A brief roadmap outlining what you would improve or expand on with more time.
+- Improve the error handling on both the backend and frontend to ensure clarity for the user and so that it would be easier to debug
+- Introduce concept of `user_id` into each task so that we can have task-assignment
+- Either infinite scroll or pagination if the specific use-case anticipates a large quantity of tasks
+- Additional features that I would add:
+    - Search/Filter to allow users to search for specific tasks/subtasks
+    - Checkboxes to allow users to mark tasks as DONE
+        - I would also add in timestamps so users can see when each task was created
+    - Allow users to DELETE tasks
+    - Adjust the entire UI to allow users to click + drag and reorder tasks
 
----
 
-## Questions?
+## What I would have asked prior to starting this
+- The instructions were quite specific with the necessary "challenge" hidden within the provided code, so I would not have asked for any clarification around the task itself
+- But I perhaps would have asked whether there were any other expectations surrounding the challenge, as what specific aspects the developer wanted to see from me, such as some focus on styling or to consider additional features to implement. 
+- As these were not mentioned, I did end up contemplating for a while on how much wider I could've tackled this challenge and what other features I should implement, before I chose to focus on the task at hand
 
-Feel free to clarify anything by reaching out to the team.
-
+## What I would have asked post-challenge in regards to architecture & design of the app
+- What type of "task" tracker is this for e.g. something like Jira, Clickup, Monday
+- Useful to know the scope, the audience and how we want to scale so that features can be adjusted based on the intended use-case
