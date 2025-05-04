@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Task } from './entities/tasks.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 
@@ -18,6 +18,11 @@ export class TasksService {
   }
 
   async findAll(): Promise<Task[]> {
-    return this.tasksRepo.find({ relations: ['subtasks', 'parent'] });
+    // Only return top-level tasks
+    return this.tasksRepo.find({ where: { parent: IsNull() } });
+  }
+
+  async findSubtasks(parentId: number): Promise<Task[]> {
+    return this.tasksRepo.find({ where: { parent: { id: parentId } } });
   }
 }

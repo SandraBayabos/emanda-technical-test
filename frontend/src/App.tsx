@@ -7,10 +7,22 @@ const Main = () => {
   const { addTask } = useTasks();
 
   return (
-    <div>
-      <h1>Task Manager</h1>
-      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="New Task" />
-      <button onClick={() => { addTask(title); setTitle(''); }}>Add Task</button>
+    <div className="container mx-auto p-6 max-w-3xl">
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">Task Manager</h1>
+      <div className="flex gap-2 mb-6">
+        <input 
+          className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={title} 
+          onChange={(e) => setTitle(e.target.value)} 
+          placeholder="New Task" 
+        />
+        <button 
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors"
+          onClick={() => { addTask(title); setTitle(''); }}
+        >
+          Add Task
+        </button>
+      </div>
       <TaskList />
     </div>
   );
@@ -18,7 +30,9 @@ const Main = () => {
 
 const App = () => (
   <TaskProvider>
-    <Main />
+    <div className="min-h-screen bg-gray-50">
+      <Main />
+    </div>
   </TaskProvider>
 );
 

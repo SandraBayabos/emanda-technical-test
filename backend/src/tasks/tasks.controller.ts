@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, ParseIntPipe } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 
@@ -14,5 +14,10 @@ export class TasksController {
   @Get()
   findAll() {
     return this.tasksService.findAll();
+  }
+
+  @Get(':id/subtasks')
+  findSubtasks(@Param('id', ParseIntPipe) id: number) {
+    return this.tasksService.findSubtasks(id);
   }
 }

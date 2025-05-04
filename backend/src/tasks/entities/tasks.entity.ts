@@ -8,8 +8,13 @@ export class Task {
   @Column()
   title!: string;
 
-  @ManyToOne(() => Task, (task) => task.subtasks, { nullable: true })
+  // Added onDelete cascade so that if a parent task is deleted, its subtasks are also deleted
+  @ManyToOne(() => Task, (task) => task.subtasks, { nullable: true, onDelete: 'CASCADE' })
   parent?: Task;
+
+  // New column to link a subtask to its parentId
+  @Column({ nullable: true })
+  parentId?: number;
 
   @OneToMany(() => Task, (task) => task.parent)
   subtasks!: Task[];
