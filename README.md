@@ -64,5 +64,7 @@ __AI Result:__
 - What type of "task" tracker is this for e.g. something like Jira, Clickup, Monday
 - Useful to know the scope, the audience and how we want to scale so that features can be adjusted based on the intended use-case
 
+## Task manager demo video:
+
 [![Task Manager Demo](https://img.youtube.com/vi/fWEdI7FzY9g/0.jpg)](https://www.youtube.com/watch?v=fWEdI7FzY9g)
 
